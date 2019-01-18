@@ -78,48 +78,73 @@ var arrayPositions = [
     -0.5, -0.5, -0.5
 ];
 
+cyan1 = 26/255;
+cyan2 = 188/255;
+cyan3 = 156/255;
+
+black1 = 44/255;
+black2 = 62/255;
+black3 = 80/255;
+
+amethyst1 = 155/255;
+amethyst2 = 89/255;
+amethyst3 = 182/255;
+
+green1 = 46/255;
+green2 = 204/255;
+green3 = 113/255;
+
+red1 = 192/255;
+red2 = 57/255;
+red3 = 43/255;
+
+white1 = 236/255;
+white2 = 240/255;
+white3 = 241/255;
+
+
 var color = [
-    0,0,127,
-    0,0,127,
-    0,0,127,
-    0,0,127,
-    0,0,127,
-    0,0,127,
+    cyan1, cyan2, cyan3,
+    cyan1, cyan2, cyan3,
+    cyan1, cyan2, cyan3,
+    cyan1, cyan2, cyan3,
+    cyan1, cyan2, cyan3,
+    cyan1, cyan2, cyan3,
 
-    127,0,0,
-    127,0,0,
-    127,0,0,
-    127,0,0,
-    127,0,0,
-    127,0,0,
+    black1, black2, black3,
+    black1, black2, black3,
+    black1, black2, black3,
+    black1, black2, black3,
+    black1, black2, black3,
+    black1, black2, black3,
 
-    0,127,0,
-    0,127,0,
-    0,127,0,
-    0,127,0,
-    0,127,0,
-    0,127,0,
+    amethyst1, amethyst2, amethyst3,
+    amethyst1, amethyst2, amethyst3,
+    amethyst1, amethyst2, amethyst3,
+    amethyst1, amethyst2, amethyst3,
+    amethyst1, amethyst2, amethyst3,
+    amethyst1, amethyst2, amethyst3,
 
-    0,127,127,
-    0,127,127,
-    0,127,127,
-    0,127,127,
-    0,127,127,
-    0,127,127,
+    green1, green2, green3,
+    green1, green2, green3,
+    green1, green2, green3,
+    green1, green2, green3,
+    green1, green2, green3,
+    green1, green2, green3,
 
-    127,127,0,
-    127,127,0,
-    127,127,0,
-    127,127,0,
-    127,127,0,
-    127,127,0,
-
-    127,127,127,
-    127,127,127,
-    127,127,127,
-    127,127,127,
-    127,127,127,
-    127,127,127,
+    red1, red2, red3,
+    red1, red2, red3,
+    red1, red2, red3,
+    red1, red2, red3,
+    red1, red2, red3,
+    red1, red2, red3,
+    
+    white1, white2, white3,
+    white1, white2, white3,
+    white1, white2, white3,
+    white1, white2, white3,
+    white1, white2, white3,
+    white1, white2, white3
 ]
 
 function initContext(){
@@ -172,7 +197,7 @@ function initAttributes(){
     attribTrans = gl.getUniformLocation(program, "translation");
     attribRot = gl.getUniformLocation(program, "rotation");
     attribProj = gl.getUniformLocation(program, "projection");
-    colorLocation = gl.getAttribLocation(program, "a_color");
+    attribColor = gl.getAttribLocation(program, "couleur");
 }
 
 //Initialisation des buffers
@@ -185,10 +210,10 @@ function initBuffers(){
     gl.vertexAttribPointer(attribPos, 3, gl.FLOAT, true, 0, 0);
 
     colorBuffer = gl.createBuffer();
-    gl.enableVertexAttribArray(colorLocation);
+    gl.enableVertexAttribArray(attribColor);
     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(color), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, true, 0, 0);
+    gl.vertexAttribPointer(attribColor, 3, gl.FLOAT, true, 0, 0);
 }
 
 //Fonction permettant le dessin dans le canvas
@@ -215,15 +240,12 @@ function initProject(){
 
 function initEvents() {
     document.getElementById("rx").onclick = function(e){
-        mat4.rotateX(rotation, rotation, document.getElementById("rx").value/100);
         rotationDrawing();
     }
     document.getElementById("ry").onclick = function(e){
-        mat4.rotateY(rotation, rotation, document.getElementById("ry").value/100);
         rotationDrawing();
     }
     document.getElementById("rz").onclick = function(e){
-        mat4.rotateZ(rotation, rotation, document.getElementById("rz").value/100);
         rotationDrawing();
     }
 
@@ -238,15 +260,18 @@ function initEvents() {
     }
 
     document.getElementById("zoom").onclick = function(e){
-        mat4.perspective(project, document.getElementById("zoom").value/10, 1, 0.01, 15);
-        gl.uniformMatrix4fv(attribProj, false, project);
-        draw();
+        perspectiveDrawing();
     }
     document.getElementById("fov").onclick = function(e){
-        mat4.perspective(project, 1.5, 1+document.getElementById("fov").value/10, 0.01, 15);
-        gl.uniformMatrix4fv(attribProj, false, project);
-        draw();
+        perspectiveDrawing();
     }
+}
+
+function perspectiveDrawing(){
+    project = mat4.create();
+    mat4.perspective(project, document.getElementById("zoom").value/10, 1+document.getElementById("fov").value/10, 0.01, 15);
+    gl.uniformMatrix4fv(attribProj, false, project);
+    draw();
 }
 
 function translationDrawing(){
@@ -264,6 +289,18 @@ function translationDrawing(){
 }
 
 function rotationDrawing(){
+    var matTemp = mat4.create();
+    mat4.fromXRotation(matTemp, document.getElementById("rx").value/100);
+
+    var matTemp1 = mat4.create();
+    mat4.fromYRotation(matTemp1, document.getElementById("ry").value/100);
+
+    var matTemp2 = mat4.create();
+    mat4.fromZRotation(matTemp2, document.getElementById("rz").value/100);
+
+    mat4.multiply(rotation, matTemp, matTemp1);
+    mat4.multiply(rotation, rotation, matTemp2);
+
     gl.uniformMatrix4fv(attribRot, false, rotation);
     draw();
 }
