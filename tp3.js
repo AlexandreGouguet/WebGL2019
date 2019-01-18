@@ -19,10 +19,108 @@ var attribProj; //attribute projection
 var attribTrans;
 var getPosition = [0, 0];
 var pointSize = 10.0;
-var mousePositions = [];
 var buffer;
 var rota = 0;
 var project; //matrice de projection
+var arrayPositions = [
+    //face1 (devant)
+    -0.5, -0.5, 0.5,
+    -0.5, 0.5, 0.5,
+    0.5, 0.5, 0.5,
+
+    -0.5, -0.5, 0.5,
+    0.5, -0.5, 0.5,
+    0.5, 0.5, 0.5,
+
+    //face2 (derriere)
+    -0.5, -0.5, -0.5,
+    -0.5, 0.5, -0.5,
+    0.5, 0.5, -0.5,
+
+    -0.5, -0.5, -0.5,
+    0.5, -0.5, -0.5,
+    0.5, 0.5, -0.5,
+
+    //face3 (gauche)
+    -0.5, 0.5, 0.5,
+    -0.5, -0.5, 0.5,
+    -0.5, -0.5, -0.5,
+
+    -0.5, 0.5, 0.5,
+    -0.5, 0.5, -0.5,
+    -0.5, -0.5, -0.5,
+
+    //face4 (droite)
+    0.5, 0.5, 0.5,
+    0.5, -0.5, 0.5,
+    0.5, -0.5, -0.5,
+
+    0.5, 0.5, 0.5,
+    0.5, 0.5, -0.5,
+    0.5, -0.5, -0.5,
+
+    //face5 (haut)
+    -0.5, 0.5, 0.5,
+    -0.5, 0.5, -0.5,
+    0.5, 0.5, 0.5,
+
+    0.5, 0.5, 0.5,
+    0.5, 0.5, -0.5,
+    -0.5, 0.5, -0.5,
+
+    //face6 (bas)
+    -0.5, -0.5, 0.5,
+    -0.5, -0.5, -0.5,
+    0.5, -0.5, 0.5,
+
+    0.5, -0.5, 0.5,
+    0.5, -0.5, -0.5,
+    -0.5, -0.5, -0.5
+];
+
+var color = [
+    0,0,127,
+    0,0,127,
+    0,0,127,
+    0,0,127,
+    0,0,127,
+    0,0,127,
+
+    127,0,0,
+    127,0,0,
+    127,0,0,
+    127,0,0,
+    127,0,0,
+    127,0,0,
+
+    0,127,0,
+    0,127,0,
+    0,127,0,
+    0,127,0,
+    0,127,0,
+    0,127,0,
+
+    0,127,127,
+    0,127,127,
+    0,127,127,
+    0,127,127,
+    0,127,127,
+    0,127,127,
+
+    127,127,0,
+    127,127,0,
+    127,127,0,
+    127,127,0,
+    127,127,0,
+    127,127,0,
+
+    127,127,127,
+    127,127,127,
+    127,127,127,
+    127,127,127,
+    127,127,127,
+    127,127,127,
+]
 
 function initContext(){
     canvas = document.getElementById('dawin-webgl');
@@ -31,7 +129,7 @@ function initContext(){
         console.log('ERREUR : echec chargement du contexte');
         return;
     }
-    gl.clearColor(0.2, 0.2, 0.2, 1.0);
+    gl.clearColor(0.1, 0.1, 0.1, 1.0);
 }
 
 //Initialisation des shaders et du program
@@ -74,6 +172,7 @@ function initAttributes(){
     attribTrans = gl.getUniformLocation(program, "translation");
     attribRot = gl.getUniformLocation(program, "rotation");
     attribProj = gl.getUniformLocation(program, "projection");
+    colorLocation = gl.getAttribLocation(program, "a_color");
 }
 
 //Initialisation des buffers
@@ -81,188 +180,22 @@ function initBuffers(){
     //init buffer de points
     buffer= gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mousePositions), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(arrayPositions), gl.STATIC_DRAW);
     gl.enableVertexAttribArray(attribPos);
     gl.vertexAttribPointer(attribPos, 3, gl.FLOAT, true, 0, 0);
+
+    colorBuffer = gl.createBuffer();
+    gl.enableVertexAttribArray(colorLocation);
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(color), gl.STATIC_DRAW);
+    gl.vertexAttribPointer(colorLocation, 3, gl.FLOAT, true, 0, 0);
 }
-
-function triangleGrid(){
-//face1 (devant)
-    //triangle1
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    //triangle2
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-    
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-//face2 (derriere)
-    //triangle1
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    //triangle2
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-    
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-//face3 (gauche)
-    //triangle1
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-    
-
-    //triangle2
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-//face4 (droite)
-    //triangle1
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-    //triangle2
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-//face5 (haut)
-    //triangle1
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    //triangle2
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(0.5);
-    mousePositions.push(-1);
-
-//face6 (bas)
-    //triangle1
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    //triangle2
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(0);
-
-    mousePositions.push(0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-
-    mousePositions.push(-0.5);
-    mousePositions.push(-0.5);
-    mousePositions.push(-1);
-}
-/*
-//Mise a jour des buffers : necessaire car les coordonnees des points sont ajoutees a chaque clic
-function refreshBuffers(){
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(mousePositions), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(attribPos, 3, gl.FLOAT, true, 0, 0);  
-}*/
 
 //Fonction permettant le dessin dans le canvas
 function draw(){
     gl.enable(gl.DEPTH_TEST);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.drawArrays(gl.TRIANGLES, 0, mousePositions.length/3);
+    gl.drawArrays(gl.TRIANGLES, 0, arrayPositions.length/3);
 }
 
 function initProject(){
@@ -282,38 +215,28 @@ function initProject(){
 
 function initEvents() {
     document.getElementById("rx").onclick = function(e){
-        mat4.fromXRotation(rotation, document.getElementById("rx").value/100);
-        gl.uniformMatrix4fv(attribRot, false, rotation);
-        draw();
+        mat4.rotateX(rotation, rotation, document.getElementById("rx").value/100);
+        rotationDrawing();
     }
     document.getElementById("ry").onclick = function(e){
-        mat4.fromYRotation(rotation, document.getElementById("ry").value/100);
-        gl.uniformMatrix4fv(attribRot, false, rotation);
-        draw();
+        mat4.rotateY(rotation, rotation, document.getElementById("ry").value/100);
+        rotationDrawing();
     }
     document.getElementById("rz").onclick = function(e){
-        mat4.fromZRotation(rotation, document.getElementById("rz").value/100);
-        gl.uniformMatrix4fv(attribRot, false, rotation);
-        draw();
+        mat4.rotateZ(rotation, rotation, document.getElementById("rz").value/100);
+        rotationDrawing();
     }
+
     document.getElementById("tx").onclick = function(e){
-        var vec = vec3.fromValues(-document.getElementById("tx").value,0,0);
-        mat4.fromTranslation(translate,vec);
-        gl.uniformMatrix4fv(attribTrans, false, translate);
-        draw();
+        translationDrawing();
     }
     document.getElementById("ty").onclick = function(e){
-        var vec = vec3.fromValues(0,-document.getElementById("ty").value,0);
-        mat4.fromTranslation(translate,vec);
-        gl.uniformMatrix4fv(attribTrans, false, translate);
-        draw();
+        translationDrawing();
     }
     document.getElementById("tz").onclick = function(e){
-        var vec = vec3.fromValues(0,0,-document.getElementById("tz").value);
-        mat4.fromTranslation(translate,vec);
-        gl.uniformMatrix4fv(attribTrans, false, translate);
-        draw();
+        translationDrawing();
     }
+
     document.getElementById("zoom").onclick = function(e){
         mat4.perspective(project, document.getElementById("zoom").value/10, 1, 0.01, 15);
         gl.uniformMatrix4fv(attribProj, false, project);
@@ -326,9 +249,27 @@ function initEvents() {
     }
 }
 
+function translationDrawing(){
+    //go to 0,0,-2 (init)
+    translate = mat4.create();
+    var vec = vec3.fromValues(0,0,-2);
+    mat4.fromTranslation(translate,vec);
+    gl.uniformMatrix4fv(attribTrans, false, translate);
+
+    //Apply transform
+    var vec = vec3.fromValues(document.getElementById("tx").value,document.getElementById("ty").value,document.getElementById("tz").value);
+    mat4.translate(translate, translate, vec);
+    gl.uniformMatrix4fv(attribTrans, false, translate);
+    draw();
+}
+
+function rotationDrawing(){
+    gl.uniformMatrix4fv(attribRot, false, rotation);
+    draw();
+}
+
 function main(){
     initContext();
-    triangleGrid();
     initShaders();
     initAttributes();
     initProject();
